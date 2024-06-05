@@ -1,0 +1,12 @@
+{
+    "require": {
+        "refring/monero-rpc-php": "^0.7.3",
+        "guzzlehttp/guzzle": "^7.0"
+    },
+    "name": "recanman/mk24-monerophp-demo",
+    "config": {
+        "allow-plugins": {
+            "php-http/discovery": true
+        }
+    }
+}
