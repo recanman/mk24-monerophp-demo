@@ -1,14 +1,9 @@
 <?php
 require_once __DIR__ . '/vendor/autoload.php';
 
-function getItems()
-{
-    return [
-        // price is in atomic units (1 XMR = 1e12 atomic units)
-	// Format: {name: string, description: string, image: string, price: int
-    ];
-}
+// Some predefined functions
 
+// These two act as a 'database'.
 function get_server_state()
 {
     $data = file_get_contents('./data.json');
@@ -131,21 +126,7 @@ function set_server_state($state)
             const itemsContainer = document.getElementById('items-container');
             const items = <?php echo json_encode(getItems()); ?>;
 
-            items.forEach((item, index) => {
-                const itemDiv = document.createElement('div');
-                itemDiv.className = 'item';
-                itemDiv.innerHTML = `
-            <h3>${item.name}</h3>
-            <img src="/assets/${item.image}" alt="${item.name}" style="width: 100px;">
-            <p>${item.description}</p>
-            <p>Price: ${item.price / 1e12} XMR</p>
-            <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
-                <input type="hidden" name="itemId" value="${index}">
-                <input type="submit" value="Buy">
-            </form>
-        `;
-                itemsContainer.appendChild(itemDiv);
-            });
+	    //TODO: append items to container
         });
 
         const modal = document.getElementById('modal');
@@ -187,6 +168,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     die();
 }
 
+// TODO: implement these functions
 function processOrder(int $itemId)
 {
 }
