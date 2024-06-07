@@ -5,9 +5,7 @@ function getItems()
 {
     return [
         // price is in atomic units (1 XMR = 1e12 atomic units)
-        ['name' => 'Monerochan Plush', 'description' => 'Get the official Monerochan plush!', 'image' => 'monerochan.jpg', 'price' => 10000000000],
-        ['name' => 'Monero Sticker', 'description' => 'A cool sticker to show your support for Monero.', 'image' => 'sticker.png', 'price' => 50000000],
-        ['name' => 'Apple', 'description' => 'A fresh, tasty apple.', 'image' => 'apple.jpg', 'price' => 100000000],
+	// Format: {name: string, description: string, image: string, price: int
     ];
 }
 
@@ -20,53 +18,6 @@ function get_server_state()
 function set_server_state($state)
 {
     file_put_contents('./data.json', json_encode($state, JSON_PRETTY_PRINT));
-}
-
-function getRpc()
-{
-    $username = "monero";
-    $password = "maC8ANQPWHgo10tb/fKDpQ==";
-    $walletClient = (new \RefRing\MoneroRpcPhp\ClientBuilder('http://127.0.0.1:18082/json_rpc'))
-        ->withAuthentication($username, $password)
-        ->buildWalletClient();
-
-    return $walletClient;
-}
-
-enum OrderStatus: int
-{
-    case Pending = 0;
-    case Paid = 1;
-    case Completed = 2;
-}
-
-final class Order
-{
-    public string $id;
-    public array $item;
-    public int $amount;
-    public OrderStatus $status;
-    public string $subaddressIndex;
-
-    public function __construct(string $id, array $item, int $amount, OrderStatus $status, string $subaddressIndex)
-    {
-        $this->id = $id;
-        $this->item = $item;
-        $this->amount = $amount;
-        $this->status = $status;
-        $this->subaddressIndex = $subaddressIndex;
-    }
-
-    public function toArray(): array
-    {
-        return [
-            'id' => $this->id,
-            'item' => $this->item,
-            'amount' => $this->amount,
-            'status' => $this->status,
-            'subaddressIndex' => $this->subaddressIndex,
-        ];
-    }
 }
 ?>
 
@@ -185,7 +136,7 @@ final class Order
                 itemDiv.className = 'item';
                 itemDiv.innerHTML = `
             <h3>${item.name}</h3>
-            <img src="${item.image}" alt="${item.name}" style="width: 100px;">
+            <img src="/assets/${item.image}" alt="${item.name}" style="width: 100px;">
             <p>${item.description}</p>
             <p>Price: ${item.price / 1e12} XMR</p>
             <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
@@ -238,66 +189,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 function processOrder(int $itemId)
 {
-    $items = getItems();
-    if (!isset($items[$itemId])) {
-        die("Invalid item ID $itemId");
-    }
-    $item = $items[$itemId];
-
-    $orderId = bin2hex(random_bytes(16));
-
-    $rpc = getRpc();
-    $rpc->openWallet("wallet", "123456");
-    $subaddress = $rpc->createAddress(0, "Subaddress for Order $orderId");
-
-    $order = new Order($orderId, $item, $item['price'], OrderStatus::Pending, $subaddress->addressIndex);
-
-    $state = get_server_state();
-    $state['orders'][] = $order->toArray();
-    set_server_state($state);
-
-    echo "Order ID: $orderId";
-    $formatted = number_format($item['price'] / 1e12, 12);
-    echo "
-        <script>
-            setModal('$orderId', 'Payment Details', 'Please send the specified amount to the following address:', 'Address:', '$subaddress->address', '$formatted', false);
-        </script>
-    ";
 }
 
 function processPayment(string $orderId)
 {
-    $state = get_server_state();
-    $order = null;
-
-    foreach ($state['orders'] as $o) {
-        if ($o['id'] === $orderId) {
-            $order = $o;
-            break;
-        }
-    }
-
-    if ($order === null) {
-        die("Invalid order ID $orderId");
-    }
-
-    $rpc = getRpc();
-    $rpc->openWallet("wallet", "123456");
-    $balance = $rpc->getBalance(0, [(int)$order['subaddressIndex']]);
-
-    $amount = $order['amount'];
-    if ($balance->balance < $amount) {
-        $formatted_amount = number_format($amount / 1e12, 12);
-        $formatted_paid = number_format($balance->balance / 1e12, 12);
-
-        die("
-            <script>
-                setModal('$orderId', 'Payment Failed', 'Insufficient balance. Please try again.', 'Amount Paid:', '$formatted_paid', '$formatted_amount', true);
-            </script>
-        ");
-    }
-
-    $state['orders'] = array_filter($state['orders'], fn ($o) => $o['id'] !== $orderId);
-    set_server_state($state);
 }
 ?>

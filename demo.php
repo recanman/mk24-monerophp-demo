@@ -14,10 +14,13 @@ function restore_from_seed($client, $seed) {
 	return $wallet;
 }
 
-/////
 $username = "monero";
 $password= "monerokon2024";
-$walletClient = (new \RefRing\MoneroRpcPhp\ClientBuilder('http://127.0.0.1:18082/json_rpc'))
+
+// Edit this:
+$host = "192.168.9.208"
+
+$walletClient = (new \RefRing\MoneroRpcPhp\ClientBuilder('http://' . $host . ':18082/json_rpc'))
 	->withAuthentication($username, $password)
     ->buildWalletClient();
 
