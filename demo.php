@@ -16,7 +16,7 @@ function restore_from_seed($client, $seed) {
 
 /////
 $username = "monero";
-$password = "maC8ANQPWHgo10tb/fKDpQ==";
+$password= "monerokon2024";
 $walletClient = (new \RefRing\MoneroRpcPhp\ClientBuilder('http://127.0.0.1:18082/json_rpc'))
 	->withAuthentication($username, $password)
     ->buildWalletClient();
